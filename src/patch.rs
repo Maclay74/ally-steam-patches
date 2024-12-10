@@ -1,64 +1,30 @@
-use regex::Regex;
-
-use crate::utils::get_username;
-use std::{fs, path::PathBuf};
+use regex::{Captures, Regex};
+use std::fs;
+use std::path::PathBuf;
 
 pub struct Patch {
-    pub text_to_find: String,
-    pub replacement_text: String,
-    pub destination: PatchFile,
+    pub regex: Regex,
+    pub handler: Box<dyn Fn(&Captures) -> Option<(String, String)>>,
 }
 
-pub enum PatchFile {
-    Chunk,
-    Library,
-}
+mod tdp_slider;
 
-impl PatchFile {
-    pub fn get_regex(&self) -> &str {
-        match self {
-            PatchFile::Chunk => "^chunk",
-            PatchFile::Library => "^library",
-        }
-    }
-}
+pub async fn patch(chunk: PathBuf) {
+    let patch_item = tdp_slider::get_patch();
 
-impl PatchFile {
-    pub fn get_file(&self) -> Option<PathBuf> {
-        let username = get_username();
-        let steamui_path = dirs::home_dir()
-            .map(|home| home.join(format!("/home/{}/.local/share/Steam/steamui", username)));
+    let mut content = fs::read_to_string(&chunk).unwrap();
 
-        let steamui_path = match steamui_path {
-            Some(path) => path,
-            None => return None,
-        };
+    if let Some(captures) = patch_item.regex.captures(&content) {
+        let patch = (patch_item.handler)(&captures);
 
-        if !steamui_path.exists() {
-            return None;
+        if let Some((from, to)) = patch {
+            content = content.replace(&from, &to);
+        } else {
+            println!("Couldn't patch - text entry not found");
         }
 
-        let regex = Regex::new(self.get_regex()).unwrap();
-        let matching_files: Vec<_> = match fs::read_dir(&steamui_path).ok() {
-            Some(dir) => dir
-                .filter_map(|entry| {
-                    let entry = entry.ok()?;
-                    let file_name = entry.file_name();
-                    if regex.is_match(file_name.to_str().unwrap()) {
-                        Some(entry)
-                    } else {
-                        None
-                    }
-                })
-                .collect(),
-            None => return None,
-        };
-
-        if matching_files.is_empty() || matching_files.len() > 1 {
-            return None;
-        }
-
-        let first_matching_file = matching_files[0].file_name();
-        Some(steamui_path.join(first_matching_file))
+        fs::write(chunk, content).unwrap();
+    } else {
+        println!("Couldn't patch - text entry not found");
     }
 }

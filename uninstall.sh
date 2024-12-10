@@ -1,19 +1,13 @@
 #!/bin/sh
 
-[ "$UID" -eq 0 ] || exec sudo "$0" "$@"
-
 echo "Uninstalling Steam Patch..."
 
-USER_DIR="$(getent passwd $SUDO_USER | cut -d: -f6)"
-WORKING_FOLDER="${USER_DIR}/steam-patch"
+WORKING_FOLDER="${HOME}/steam-patch"
 
 # Disable and remove services
-sudo systemctl disable --now steam-patch > /dev/null
-sudo rm -f "${USER_DIR}/.config/systemd/user/steam-patch.service"
-sudo rm -f "/etc/systemd/system/steam-patch.service"
-
-# Remove temporary folder if it exists from the install process
-rm -rf "/tmp/steam-patch"
+systemctl --user stop steam-patch 2> /dev/null
+systemctl --user disable --now steam-patch 2> /dev/null
+rm -f "${HOME}/.config/systemd/user/steam-patch.service"
 
 # Cleanup services folder
-sudo rm -rf "${WORKING_FOLDER}"
+rm -rf "${WORKING_FOLDER}"
