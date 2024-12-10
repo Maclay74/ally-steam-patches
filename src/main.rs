@@ -1,27 +1,27 @@
-use crate::devices::create_device;
+use crate::powerstation::PowerStation;
+use crate::steam::Steam;
+use futures::join;
+use std::sync::Arc;
 
-mod devices;
 mod patch;
-mod server;
+mod powerstation;
 mod steam;
-mod utils;
+mod web_server;
 
 #[tokio::main]
 async fn main() {
-    let mut tasks = vec![];
+    let steam = Steam;
 
-    tasks.push(tokio::spawn(server::run()));
+    let chunk_path = steam.get_chunk_file().unwrap();
 
-    if let Some(device) = create_device() {
-        println!("Device created");
-        if let Some(mapper) = device.get_key_mapper() {
-            tasks.push(mapper);
-        }
-    }
+    patch::patch(chunk_path).await;
 
-    if let Some(steam) = steam::SteamClient::watch().await {
-        tasks.push(steam);
-    }
+    let power_station = PowerStation::new().await.unwrap();
+    let power_station = Arc::new(power_station);
 
-    let _ = futures::future::join_all(tasks).await;
+    join!(
+        //power_station.listen_gpu_profile(),
+        //power_station.listen_tdp(),
+        web_server::web_server(Arc::clone(&power_station)),
+    );
 }

@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: 📚 Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: 🛠️ Set Script Permissions
         run: |
@@ -60,7 +60,7 @@ jobs:
           upx --best target/x86_64-unknown-linux-gnu/release/steam-patch
 
       - name: 📦 Upload build
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: steam-patch
           path: target/x86_64-unknown-linux-gnu/release/steam-patch

@@ -1,3 +1,6 @@
+# ⚠️⚠️⚠️ UNDER CONSTRUCTION DO NO INSTALL ⚠️⚠️⚠️
+
+
 # ⚙️ Steam Patch
 Steam Patch is a tool designed to enhance your Steam experience by applying patches to the Steam client. 
 

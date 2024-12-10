@@ -1,25 +1,24 @@
 [package]
 name = "steam-patch"
-version = "0.2.1"
+version = "2.0.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1", features = [ "rt-multi-thread", "macros"] }
-serde = { version = "1.0.169", features=["derive"] }
-serde_json = { version = "1.0.100" }
-tungstenite = "0.20.0"
+sysinfo = "0.33.0"
+zbus = { version = "5.1.1", default-features = false, features = ["tokio"] }
+tokio = { version = "1.42.0", features = ["full"] }
+futures = "0.3.31"
+axum = "0.7.9"
+serde = { version = "1.0.215", features = ["derive"] }
+tower-http = { version = "0.6.2", features = ["cors"] }
 dirs = "5.0.1"
-futures =  "0.3.28"
-sysinfo = "0.29.4"
-regex = "1"
-evdev = { version = "0.12.1", features = ["tokio", "serde"]}
-hyper = { version = "0.14", features = ["full"] }
-inotify = "0.10.1"
+glob = "0.3.1"
+regex = "1.11.1"
 
 [profile.release]
-opt-level = "z"
-# debug = true
-lto = true          # Enable link-time optimization
-codegen-units = 1   # Reduce number of codegen units to increase optimizations
-panic = 'abort'     # Abort on panic
-strip = true        # Strip symbols from binary*
+opt-level = 3          # Optimize for maximum speed
+lto = true              # Enable Link Time Optimization (LTO) for smaller code size and better performance
+panic = "abort"         # Avoid generating panic unwind information
+codegen-units = 1       # Reduce the number of codegen units to improve inlining and optimization
+strip = "debuginfo"     # Strip debug information to reduce size
+debug = false           # Don't include debug information in the release build
